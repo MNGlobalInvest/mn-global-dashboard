@@ -1,0 +1,672 @@
+
+<style>
+:root {
+  --btc: #F7931A;
+  --btc-dim: #c4740e;
+  --sidebar-w: 200px;
+  --header-h: 54px;
+  --font: 'IBM Plex Mono', monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--color-background-tertiary); color: var(--color-text-primary); font-size: 13px; }
+
+#app { display: flex; flex-direction: column; height: 100vh; min-height: 700px; }
+
+/* HEADER */
+#hdr {
+  height: var(--header-h); display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; background: var(--color-background-primary);
+  border-bottom: 0.5px solid var(--color-border-tertiary); flex-shrink: 0;
+}
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.hdr-logo { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: -0.5px; }
+.hdr-logo span { color: #F7931A; }
+.hdr-pill { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-weight: 500; }
+.pill-green { background: #EAF3DE; color: #3B6D11; }
+.pill-amber { background: #FAEEDA; color: #854F0B; }
+.pill-red { background: #FCEBEB; color: #A32D2D; }
+.hdr-right { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--color-text-secondary); }
+.btc-price { font-family: monospace; font-weight: 600; font-size: 15px; color: var(--color-text-primary); }
+.price-chg { font-size: 11px; font-weight: 500; }
+.chg-pos { color: #3B6D11; } .chg-neg { color: #A32D2D; }
+.sync-time { font-size: 11px; color: var(--color-text-tertiary); }
+
+/* BODY */
+#body { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0; background: var(--color-background-primary);
+  border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column;
+  padding: 12px 0; overflow-y: auto;
+}
+.nav-section { padding: 8px 12px 4px; font-size: 10px; font-weight: 600; color: var(--color-text-tertiary); letter-spacing: 0.8px; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+  font-size: 12px; cursor: pointer; border-left: 2px solid transparent;
+  color: var(--color-text-secondary); transition: all 0.1s;
+}
+.nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.nav-item.active { border-left-color: #F7931A; background: #faeeda44; color: #854F0B; font-weight: 500; }
+.nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+/* MAIN + INSIGHTS */
+#main-wrap { display: flex; flex: 1; overflow: hidden; }
+#main { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+#insights { width: 280px; flex-shrink: 0; background: var(--color-background-primary); border-left: 0.5px solid var(--color-border-tertiary); overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* CARDS */
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 10px; padding: 14px 16px; }
+.card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 10px; }
+
+/* SUMMARY CARDS */
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sum-card { background: var(--color-background-secondary); border-radius: 8px; padding: 12px 14px; }
+.sum-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 6px; font-weight: 500; }
+.sum-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--color-text-primary); line-height: 1.1; }
+.sum-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+.sum-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 500; margin-top: 4px; }
+
+/* CHARTS ROW */
+.charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.chart-wrap { position: relative; width: 100%; }
+
+/* TABLES */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--color-text-tertiary); padding: 4px 8px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); text-align: left; }
+.tbl td { padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--color-background-secondary); }
+.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 500; }
+.b-green { background: #EAF3DE; color: #3B6D11; }
+.b-amber { background: #FAEEDA; color: #854F0B; }
+.b-red { background: #FCEBEB; color: #A32D2D; }
+.b-blue { background: #E6F1FB; color: #185FA5; }
+.b-gray { background: #F1EFE8; color: #5F5E5A; }
+
+/* INSIGHTS PANEL */
+.insight-section { border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 12px; }
+.insight-section:last-child { border-bottom: none; }
+.insight-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 8px; }
+.ai-summary { font-size: 12px; line-height: 1.65; color: var(--color-text-secondary); }
+.alert-item { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+.alert-item:last-child { border-bottom: none; }
+.alert-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.dot-amber { background: #EF9F27; }
+.dot-green { background: #639922; }
+.dot-red { background: #E24B4A; }
+.action-btn { display: block; width: 100%; text-align: left; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 7px 10px; font-size: 12px; cursor: pointer; color: var(--color-text-secondary); margin-bottom: 6px; }
+.action-btn:hover { background: var(--color-background-tertiary); color: var(--color-text-primary); }
+.ai-loading { font-size: 12px; color: var(--color-text-tertiary); font-style: italic; }
+#ai-gen-btn { background: #F7931A; color: white; border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; }
+#ai-gen-btn:hover { background: #c4740e; }
+.typewriter { white-space: pre-wrap; }
+
+/* POLICY */
+.policy-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+.policy-row:last-child { border-bottom: none; }
+.policy-key { color: var(--color-text-secondary); }
+.policy-val { font-family: monospace; font-weight: 600; color: var(--color-text-primary); }
+.toggle { width: 28px; height: 16px; border-radius: 8px; display: inline-block; cursor: pointer; position: relative; flex-shrink: 0; }
+.tog-on { background: #639922; }
+.tog-off { background: #D3D1C7; }
+.tog-dot { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: white; top: 2px; transition: left 0.15s; }
+.tog-on .tog-dot { left: 14px; }
+.tog-off .tog-dot { left: 2px; }
+
+/* WALLET BARS */
+.wallet-bar-wrap { margin-bottom: 8px; }
+.wallet-bar-label { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px; }
+.wallet-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+.wallet-bar-fill { height: 100%; border-radius: 3px; }
+
+/* TABS */
+.tab-row { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 12px; }
+.tab { padding: 6px 14px; font-size: 12px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--color-text-secondary); margin-bottom: -0.5px; }
+.tab.active { border-bottom-color: #F7931A; color: var(--color-text-primary); font-weight: 500; }
+
+/* SECTION VIEWS */
+.view { display: none; flex-direction: column; gap: 14px; }
+.view.active { display: flex; }
+
+.page-header { display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 15px; font-weight: 600; }
+.filter-row { display: flex; gap: 8px; align-items: center; }
+.filter-select { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 5px 8px; font-size: 12px; color: var(--color-text-primary); cursor: pointer; }
+.export-btn { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--color-text-secondary); }
+.export-btn:hover { color: var(--color-text-primary); }
+
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">MN Global Investment Holdings LLC Bitcoin Treasury Dashboard</h2>
+
+<div id="app">
+  <!-- HEADER -->
+  <div id="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">MN<span>₿</span>GLOBAL</div>
+      <div class="hdr-pill pill-green">POLICY ACTIVE</div>
+      <div class="hdr-pill pill-amber">2 PENDING APPROVALS</div>
+    </div>
+    <div class="hdr-right">
+      <div>
+        <div class="btc-price" id="btc-usd-price">$97,420</div>
+        <div class="price-chg chg-pos">▲ 2.31% (24h)</div>
+      </div>
+      <div class="sync-time">Last sync: <span id="sync-time"></span></div>
+    </div>
+  </div>
+
+  <div id="body">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div class="nav-section">Treasury</div>
+      <div class="nav-item active" onclick="showView('overview',this)"><span class="nav-icon">◈</span>Overview</div>
+      <div class="nav-item" onclick="showView('accumulation',this)"><span class="nav-icon">↗</span>Accumulation</div>
+      <div class="nav-item" onclick="showView('wallets',this)"><span class="nav-icon">◉</span>Wallets</div>
+      <div class="nav-section">Operations</div>
+      <div class="nav-item" onclick="showView('invoices',this)"><span class="nav-icon">▤</span>Invoices</div>
+      <div class="nav-item" onclick="showView('approvals',this)"><span class="nav-icon">✓</span>Approvals</div>
+      <div class="nav-item" onclick="showView('audit',this)"><span class="nav-icon">≡</span>Audit Log</div>
+      <div class="nav-section">Config</div>
+      <div class="nav-item" onclick="showView('policy',this)"><span class="nav-icon">⚙</span>Policy</div>
+    </div>
+
+    <div id="main-wrap">
+      <!-- MAIN CANVAS -->
+      <div id="main">
+
+        <!-- OVERVIEW VIEW -->
+        <div id="view-overview" class="view active">
+          <div class="summary-grid">
+            <div class="sum-card">
+              <div class="sum-label">Total BTC Held</div>
+              <div class="sum-value">14.8372</div>
+              <div class="sum-sub">₿ 14.8372 BTC</div>
+              <div class="sum-badge b-green">+0.4120 (30d)</div>
+            </div>
+            <div class="sum-card">
+              <div class="sum-label">USD Value</div>
+              <div class="sum-value" style="font-size:17px;">$1,445,890</div>
+              <div class="sum-sub">@ $97,420 / BTC</div>
+              <div class="sum-badge b-green">+$42,810 (24h)</div>
+            </div>
+            <div class="sum-card">
+              <div class="sum-label">Avg Cost Basis</div>
+              <div class="sum-value" style="font-size:17px;">$71,204</div>
+              <div class="sum-sub">Per BTC acquired</div>
+              <div class="sum-badge b-blue">+36.8% unrealized</div>
+            </div>
+            <div class="sum-card">
+              <div class="sum-label">Unrealized PnL</div>
+              <div class="sum-value" style="font-size:17px;color:#3B6D11;">+$388k</div>
+              <div class="sum-sub">Realized: +$24,105</div>
+              <div class="sum-badge b-green">Net positive</div>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <div class="card">
+              <div class="card-title">BTC balance over time</div>
+              <div class="chart-wrap" style="height:220px;">
+                <canvas id="balanceChart" role="img" aria-label="Line chart of BTC balance growing from 8 BTC in Jan to 14.8 BTC in Jul 2025">BTC grew from 8.2 to 14.8 BTC over 7 months.</canvas>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Wallet allocation</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary);">
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#F7931A;"></span>Cold (58%)</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#378ADD;"></span>Warm (28%)</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#639922;"></span>Hot (14%)</span>
+              </div>
+              <div class="chart-wrap" style="height:180px;">
+                <canvas id="allocChart" role="img" aria-label="Donut chart: Cold 58%, Warm 28%, Hot 14%">Cold 58%, Warm 28%, Hot 14% wallet allocation.</canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <div class="card">
+              <div class="card-title">Monthly accumulation (BTC)</div>
+              <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary);">
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#F7931A;"></span>Direct purchase</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#378ADD;"></span>Revenue convert</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#639922;"></span>Treasury sweep</span>
+              </div>
+              <div class="chart-wrap" style="height:200px;">
+                <canvas id="accumChart" role="img" aria-label="Stacked bar chart of monthly BTC accumulation by source from Jan to Jul 2025">Monthly BTC accumulation stacked by purchase, revenue, and sweep sources.</canvas>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Cost basis vs market price</div>
+              <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary);">
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#E24B4A;border:1px dashed #E24B4A;"></span>Avg cost basis</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#F7931A;"></span>Market price</span>
+              </div>
+              <div class="chart-wrap" style="height:200px;">
+                <canvas id="basisChart" role="img" aria-label="Dual line chart showing average cost basis at $71k vs market price trend up to $97k">Cost basis $71k vs market price $97k.</canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-grid">
+            <div class="card">
+              <div class="card-title">Recent transactions</div>
+              <table class="tbl">
+                <thead><tr><th>Date</th><th>Type</th><th>BTC</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Jul 14</td><td>Treasury sweep</td><td class="mono">+0.1420</td><td><span class="badge b-green">confirmed</span></td></tr>
+                  <tr><td>Jul 12</td><td>Direct purchase</td><td class="mono">+0.2500</td><td><span class="badge b-green">confirmed</span></td></tr>
+                  <tr><td>Jul 10</td><td>Revenue convert</td><td class="mono">+0.0871</td><td><span class="badge b-green">confirmed</span></td></tr>
+                  <tr><td>Jul 8</td><td>Outflow – ops</td><td class="mono" style="color:#A32D2D;">-0.0210</td><td><span class="badge b-amber">approved</span></td></tr>
+                  <tr><td>Jul 5</td><td>BTCPay invoice</td><td class="mono">+0.0330</td><td><span class="badge b-green">confirmed</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <div class="card-title">Pending approvals</div>
+              <table class="tbl">
+                <thead><tr><th>Action</th><th>Amount</th><th>Requested by</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Spend limit exception</td><td class="mono">0.3500 BTC</td><td>M. Ndiaye</td><td><span class="badge b-amber">pending</span></td></tr>
+                  <tr><td>Cold wallet transfer</td><td class="mono">2.0000 BTC</td><td>Finance Admin</td><td><span class="badge b-amber">pending</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCUMULATION VIEW -->
+        <div id="view-accumulation" class="view">
+          <div class="page-header">
+            <div class="page-title">Accumulation tracking</div>
+            <div class="filter-row">
+              <select class="filter-select"><option>Last 30 days</option><option>Last 90 days</option><option>YTD</option><option>All time</option></select>
+              <select class="filter-select"><option>All sources</option><option>Direct purchase</option><option>Revenue convert</option><option>Treasury sweep</option></select>
+              <button class="export-btn">Export CSV</button>
+            </div>
+          </div>
+          <div class="summary-grid">
+            <div class="sum-card"><div class="sum-label">24h acquired</div><div class="sum-value">0.1420</div><div class="sum-badge b-green">+$13,834</div></div>
+            <div class="sum-card"><div class="sum-label">7d acquired</div><div class="sum-value">0.4210</div><div class="sum-badge b-green">+$41,005</div></div>
+            <div class="sum-card"><div class="sum-label">30d acquired</div><div class="sum-value">1.2340</div><div class="sum-badge b-green">+$120,236</div></div>
+            <div class="sum-card"><div class="sum-label">Auto-stack rate</div><div class="sum-value">82%</div><div class="sum-sub">Of eligible revenue</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Accumulation by source (BTC)</div>
+            <div class="chart-wrap" style="height:260px;">
+              <canvas id="accumDetail" role="img" aria-label="Stacked bar chart showing accumulation sources for each month of 2025">Detailed monthly accumulation breakdown.</canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Transaction log</div>
+            <table class="tbl">
+              <thead><tr><th>Date/Time</th><th>Source</th><th>Category</th><th>BTC</th><th>USD value</th><th>Wallet</th><th>TXID</th></tr></thead>
+              <tbody id="acc-txn-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- WALLETS VIEW -->
+        <div id="view-wallets" class="view">
+          <div class="page-header">
+            <div class="page-title">Wallet management</div>
+            <button class="export-btn">Export snapshot</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Allocation overview</div>
+            <div id="wallet-bars"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Wallet registry</div>
+            <table class="tbl">
+              <thead><tr><th>Name</th><th>Type</th><th>Custody</th><th>Balance</th><th>USD value</th><th>Alloc %</th><th>Last movement</th><th>Status</th></tr></thead>
+              <tbody id="wallet-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- INVOICES VIEW -->
+        <div id="view-invoices" class="view">
+          <div class="page-header">
+            <div class="page-title">BTCPay invoices</div>
+            <div class="filter-row">
+              <select class="filter-select"><option>All statuses</option><option>Paid</option><option>Pending</option><option>Expired</option></select>
+              <button class="export-btn">Export CSV</button>
+            </div>
+          </div>
+          <div class="summary-grid">
+            <div class="sum-card"><div class="sum-label">Total invoices</div><div class="sum-value">147</div></div>
+            <div class="sum-card"><div class="sum-label">Paid (30d)</div><div class="sum-value">38</div><div class="sum-badge b-green">+2.8120 BTC</div></div>
+            <div class="sum-card"><div class="sum-label">Pending</div><div class="sum-value">4</div><div class="sum-badge b-amber">awaiting</div></div>
+            <div class="sum-card"><div class="sum-label">Revenue (30d)</div><div class="sum-value" style="font-size:16px;">$274,010</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Invoice log</div>
+            <table class="tbl">
+              <thead><tr><th>Invoice ID</th><th>BTCPay ID</th><th>BTC</th><th>USD</th><th>Order ref</th><th>Created</th><th>Paid</th><th>Status</th></tr></thead>
+              <tbody id="invoice-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- APPROVALS VIEW -->
+        <div id="view-approvals" class="view">
+          <div class="page-header">
+            <div class="page-title">Approval queue</div>
+            <div class="filter-row"><select class="filter-select"><option>All statuses</option><option>Pending</option><option>Approved</option><option>Denied</option></select></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Approval log</div>
+            <table class="tbl">
+              <thead><tr><th>ID</th><th>Action type</th><th>Requested by</th><th>Approved by</th><th>Amount</th><th>Threshold</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody id="approval-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AUDIT VIEW -->
+        <div id="view-audit" class="view">
+          <div class="page-header">
+            <div class="page-title">Audit log</div>
+            <div class="filter-row">
+              <select class="filter-select"><option>All actions</option><option>Transfer</option><option>Policy change</option><option>Approval</option><option>Login</option></select>
+              <button class="export-btn">Export CSV</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">System event log</div>
+            <table class="tbl">
+              <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Object type</th><th>Object ID</th><th>Metadata</th></tr></thead>
+              <tbody id="audit-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- POLICY VIEW -->
+        <div id="view-policy" class="view">
+          <div class="page-header"><div class="page-title">Treasury policy rules</div></div>
+          <div class="bottom-grid">
+            <div class="card">
+              <div class="card-title">Active policy rules</div>
+              <div id="policy-rules"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Policy violations (30d)</div>
+              <table class="tbl">
+                <thead><tr><th>Date</th><th>Rule</th><th>Actor</th><th>Severity</th></tr></thead>
+                <tbody>
+                  <tr><td>Jul 8</td><td>Spend limit exceeded</td><td>Finance Admin</td><td><span class="badge b-amber">warning</span></td></tr>
+                  <tr><td>Jun 30</td><td>Cold wallet unapproved move</td><td>System</td><td><span class="badge b-red">critical</span></td></tr>
+                  <tr><td>Jun 20</td><td>Auto-stack threshold miss</td><td>System</td><td><span class="badge b-gray">info</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /main -->
+
+      <!-- INSIGHTS PANEL -->
+      <div id="insights">
+        <div class="insight-section">
+          <div class="insight-label">AI treasury summary</div>
+          <div id="ai-summary" class="ai-summary ai-loading">Click below to generate an AI summary of current treasury state.</div>
+          <div style="margin-top: 10px;">
+            <button id="ai-gen-btn" onclick="generateAISummary()">Generate summary ↗</button>
+          </div>
+        </div>
+        <div class="insight-section">
+          <div class="insight-label">Alerts</div>
+          <div class="alert-item"><div class="alert-dot dot-amber"></div><div>Spend limit exception awaiting approval — 0.35 BTC requested by M. Ndiaye</div></div>
+          <div class="alert-item"><div class="alert-dot dot-amber"></div><div>Cold wallet transfer pending — 2.0 BTC to primary cold storage</div></div>
+          <div class="alert-item"><div class="alert-dot dot-green"></div><div>Auto-stack completed — 0.1420 BTC swept on Jul 14</div></div>
+          <div class="alert-item"><div class="alert-dot dot-red"></div><div>Policy violation logged Jun 30 — unapproved cold wallet move</div></div>
+        </div>
+        <div class="insight-section">
+          <div class="insight-label">Recommended actions</div>
+          <button class="action-btn" onclick="sendPrompt('What should I do about the pending cold wallet transfer approval of 2 BTC for MN Global?')">Review cold wallet transfer ↗</button>
+          <button class="action-btn" onclick="sendPrompt('Generate a board-ready Bitcoin treasury summary for MN Global Investment Holdings LLC with current holdings of 14.84 BTC at an average cost basis of $71,204, unrealized gain of 36.8%, and two pending approvals.')">Generate board summary ↗</button>
+          <button class="action-btn" onclick="sendPrompt('Explain the June 30 cold wallet policy violation for MN Global treasury and what controls should be added.')">Analyze policy violation ↗</button>
+        </div>
+        <div class="insight-section">
+          <div class="insight-label">Policy state</div>
+          <div class="policy-row"><span class="policy-key">Auto-stack</span><span class="hdr-pill pill-green" style="font-size:10px;">ENABLED</span></div>
+          <div class="policy-row"><span class="policy-key">Daily spend limit</span><span class="policy-val">0.25 BTC</span></div>
+          <div class="policy-row"><span class="policy-key">Cold wallet threshold</span><span class="policy-val">10 BTC</span></div>
+          <div class="policy-row"><span class="policy-key">Approval quorum</span><span class="policy-val">2-of-3</span></div>
+        </div>
+      </div>
+    </div><!-- /main-wrap -->
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// SYNC TIME
+document.getElementById('sync-time').textContent = new Date().toLocaleTimeString();
+
+// NAV
+function showView(id, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// CHART DEFAULTS
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul'];
+const gridColor = 'rgba(128,128,128,0.12)';
+const tickColor = '#888780';
+const baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2C2C2A', titleColor: '#D3D1C7', bodyColor: '#D3D1C7', padding: 8, cornerRadius: 6 } },
+  scales: { x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } }, y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } } }
+};
+
+// BTC BALANCE LINE
+new Chart(document.getElementById('balanceChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{ label: 'BTC balance', data: [8.2, 9.1, 10.3, 11.8, 12.9, 13.7, 14.84], borderColor: '#F7931A', backgroundColor: 'rgba(247,147,26,0.1)', fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#F7931A' }]
+  },
+  options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => v.toFixed(1) + ' ₿' } } } }
+});
+
+// ALLOCATION DONUT
+new Chart(document.getElementById('allocChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Cold', 'Warm', 'Hot'],
+    datasets: [{ data: [58, 28, 14], backgroundColor: ['#F7931A','#378ADD','#639922'], borderWidth: 0 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
+});
+
+// MONTHLY ACCUMULATION STACKED BAR
+new Chart(document.getElementById('accumChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Direct purchase', data: [0.3,0.5,0.4,0.6,0.5,0.4,0.35], backgroundColor: '#F7931A', stack: 'a' },
+      { label: 'Revenue convert', data: [0.12,0.18,0.22,0.28,0.32,0.29,0.20], backgroundColor: '#378ADD', stack: 'a' },
+      { label: 'Treasury sweep', data: [0.08,0.1,0.14,0.17,0.2,0.18,0.14], backgroundColor: '#639922', stack: 'a' }
+    ]
+  },
+  options: { ...baseOpts, scales: { ...baseOpts.scales, x: { ...baseOpts.scales.x, stacked: true, ticks: { autoSkip: false } }, y: { ...baseOpts.scales.y, stacked: true, ticks: { ...baseOpts.scales.y.ticks, callback: v => v.toFixed(2) } } } }
+});
+
+// COST BASIS VS MARKET
+new Chart(document.getElementById('basisChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Market price', data: [42000,48000,58000,65000,72000,84000,97420], borderColor: '#F7931A', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#F7931A' },
+      { label: 'Avg cost basis', data: [42000,44000,52000,61000,67000,69000,71204], borderColor: '#E24B4A', borderDash: [5,3], tension: 0.3, pointRadius: 3, pointBackgroundColor: '#E24B4A' }
+    ]
+  },
+  options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, ticks: { ...baseOpts.scales.y.ticks, callback: v => '$' + (v/1000).toFixed(0) + 'k' } } } }
+});
+
+// ACCUMULATION DETAIL (copy of monthly)
+new Chart(document.getElementById('accumDetail'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Direct purchase', data: [0.3,0.5,0.4,0.6,0.5,0.4,0.35], backgroundColor: '#F7931A', stack: 'a' },
+      { label: 'Revenue convert', data: [0.12,0.18,0.22,0.28,0.32,0.29,0.20], backgroundColor: '#378ADD', stack: 'a' },
+      { label: 'Treasury sweep', data: [0.08,0.1,0.14,0.17,0.2,0.18,0.14], backgroundColor: '#639922', stack: 'a' }
+    ]
+  },
+  options: { ...baseOpts, scales: { ...baseOpts.scales, x: { ...baseOpts.scales.x, stacked: true, ticks: { autoSkip: false } }, y: { ...baseOpts.scales.y, stacked: true } } }
+});
+
+// POPULATE TABLES
+const txns = [
+  ['Jul 14, 09:11','Treasury sweep','sweep','+0.1420','$13,834','Cold Primary','bc1q...f4e2'],
+  ['Jul 12, 14:30','Direct purchase','purchase','+ 0.2500','$24,355','Cold Primary','bc1q...a7f1'],
+  ['Jul 10, 11:05','Revenue convert','revenue','+ 0.0871','$8,485','Warm Ops','bc1q...c3d8'],
+  ['Jul 8, 16:22','Outflow – ops','outflow','- 0.0210','$2,046','Hot Spend','bc1q...b1e9'],
+  ['Jul 5, 08:47','BTCPay invoice','invoice','+ 0.0330','$3,215','Warm Ops','bc1q...d5f3'],
+  ['Jun 30, 20:01','Direct purchase','purchase','+ 0.3000','$29,220','Cold Primary','bc1q...e2a1'],
+  ['Jun 25, 13:14','Treasury sweep','sweep','+ 0.1180','$11,494','Cold Primary','bc1q...f7c4'],
+];
+const accBody = document.getElementById('acc-txn-body');
+txns.forEach(([dt,src,cat,btc,usd,wal,txid]) => {
+  const isOut = btc.trim().startsWith('-');
+  accBody.innerHTML += `<tr><td class="mono">${dt}</td><td>${src}</td><td><span class="badge b-gray">${cat}</span></td><td class="mono" style="color:${isOut?'#A32D2D':'#3B6D11'}">${btc}</td><td>${usd}</td><td>${wal}</td><td class="mono" style="font-size:10px;">${txid}</td></tr>`;
+});
+
+// WALLETS
+const wallets = [
+  ['Cold Primary','Hardware','Self-custody','8.6200','$839,484','58.0%','Jul 14','Active'],
+  ['Cold Reserve','Hardware','Multi-sig','2.7000','$263,034','18.2%','Jun 30','Active'],
+  ['Warm Ops','Software','Self-custody','2.9172','$284,133','19.6%','Jul 12','Active'],
+  ['Hot Spend','Software','Self-custody','0.5000','$48,710','3.4%','Jul 8','Active'],
+  ['BTCPay Node','Node wallet','Self-custody','0.1000','$9,742','0.7%','Jul 5','Active'],
+];
+const walletBody = document.getElementById('wallet-body');
+const walletBars = document.getElementById('wallet-bars');
+const barColors = ['#F7931A','#c4740e','#378ADD','#639922','#888780'];
+wallets.forEach(([name,type,custody,bal,usd,alloc,last,status],i) => {
+  walletBody.innerHTML += `<tr><td><strong>${name}</strong></td><td>${type}</td><td>${custody}</td><td class="mono">${bal} BTC</td><td>${usd}</td><td class="mono">${alloc}</td><td>${last}</td><td><span class="badge b-green">${status}</span></td></tr>`;
+  const pct = parseFloat(alloc);
+  walletBars.innerHTML += `<div class="wallet-bar-wrap"><div class="wallet-bar-label"><span>${name}</span><span class="mono">${bal} BTC (${alloc})</span></div><div class="wallet-bar"><div class="wallet-bar-fill" style="width:${pct}%;background:${barColors[i]};"></div></div></div>`;
+});
+
+// INVOICES
+const invs = [
+  ['INV-0147','BP-4F2A1C9','0.0330','$3,215','ORD-2091','Jul 5, 08:47','Jul 5, 09:01','paid'],
+  ['INV-0146','BP-3E1B0D8','0.0120','$1,169','ORD-2088','Jul 3, 14:22','Jul 3, 14:35','paid'],
+  ['INV-0145','BP-2D0A9E7','0.0450','$4,384','ORD-2085','Jul 1, 10:05','—','pending'],
+  ['INV-0144','BP-1C9F8D6','0.0890','$8,671','ORD-2082','Jun 28, 17:30','Jun 28, 17:48','paid'],
+  ['INV-0143','BP-0B8E7C5','0.0015','$146','ORD-2079','Jun 25, 09:15','—','expired'],
+  ['INV-0142','BP-9A7D6B4','0.1200','$11,690','ORD-2076','Jun 22, 12:00','Jun 22, 12:22','paid'],
+];
+const invBody = document.getElementById('invoice-body');
+invs.forEach(([id,bpid,btc,usd,ord,created,paid,status]) => {
+  const sc = status==='paid'?'b-green':status==='pending'?'b-amber':'b-red';
+  invBody.innerHTML += `<tr><td class="mono">${id}</td><td class="mono" style="font-size:10px;">${bpid}</td><td class="mono">${btc}</td><td>${usd}</td><td class="mono">${ord}</td><td style="font-size:11px;">${created}</td><td style="font-size:11px;">${paid}</td><td><span class="badge ${sc}">${status}</span></td></tr>`;
+});
+
+// APPROVALS
+const approvs = [
+  ['APR-009','Spend limit exception','M. Ndiaye','—','0.3500 BTC','0.25 BTC','Jul 14','pending'],
+  ['APR-008','Cold wallet transfer','Finance Admin','—','2.0000 BTC','1.0 BTC','Jul 13','pending'],
+  ['APR-007','Policy override','Finance Admin','M. Ndiaye','0.1800 BTC','0.25 BTC','Jul 8','approved'],
+  ['APR-006','Revenue sweep','System','Auto','0.1180 BTC','—','Jun 25','approved'],
+  ['APR-005','Cold wallet move','Finance Admin','M. Ndiaye','0.5000 BTC','1.0 BTC','Jun 30','denied'],
+];
+const appBody = document.getElementById('approval-body');
+approvs.forEach(([id,act,req,appr,amt,thresh,dt,status]) => {
+  const sc = status==='approved'?'b-green':status==='pending'?'b-amber':'b-red';
+  appBody.innerHTML += `<tr><td class="mono">${id}</td><td>${act}</td><td>${req}</td><td>${appr}</td><td class="mono">${amt}</td><td class="mono">${thresh}</td><td>${dt}</td><td><span class="badge ${sc}">${status}</span></td></tr>`;
+});
+
+// AUDIT LOG
+const auditEvts = [
+  ['Jul 14, 09:11:42','system','treasury_sweep','transaction','TXN-4420','amount=0.1420, wallet=cold-primary'],
+  ['Jul 13, 15:04:18','finance-admin','approval_requested','approval','APR-008','action=cold_wallet_transfer, btc=2.0'],
+  ['Jul 12, 14:30:55','m.ndiaye','purchase_initiated','transaction','TXN-4419','amount=0.25, source=direct'],
+  ['Jul 10, 11:06:01','system','revenue_convert','transaction','TXN-4418','amount=0.0871, rate=97420'],
+  ['Jul 8, 16:22:11','finance-admin','spend_approved','approval','APR-007','override=true, amount=0.18'],
+  ['Jul 5, 08:47:32','btcpay-node','invoice_paid','invoice','INV-0147','order=ORD-2091, btc=0.033'],
+  ['Jun 30, 20:01:00','system','cold_wallet_alert','policy','POL-002','violation=unapproved_move, severity=critical'],
+  ['Jun 25, 13:14:20','system','treasury_sweep','transaction','TXN-4415','amount=0.118, wallet=cold-primary'],
+];
+const auditBody = document.getElementById('audit-body');
+auditEvts.forEach(([ts,actor,action,objtype,objid,meta]) => {
+  auditBody.innerHTML += `<tr><td class="mono" style="font-size:11px;">${ts}</td><td>${actor}</td><td class="mono" style="font-size:11px;">${action}</td><td><span class="badge b-gray">${objtype}</span></td><td class="mono" style="font-size:11px;">${objid}</td><td style="font-size:11px;color:var(--color-text-tertiary);">${meta}</td></tr>`;
+});
+
+// POLICY RULES
+const rules = [
+  ['auto_stack_enabled','true','Auto-stack surplus revenue','Jul 1'],
+  ['auto_stack_threshold','0.05 BTC','Min sweep trigger','Jul 1'],
+  ['daily_spend_limit','0.25 BTC','Per-day hot wallet spend','Jun 15'],
+  ['cold_wallet_threshold','10.0 BTC','Auto-move to cold above','Jun 15'],
+  ['approval_quorum','2-of-3','Multi-sig quorum required','Jun 1'],
+  ['btcpay_auto_settle','true','Auto-settle invoices','Jun 1'],
+  ['revenue_convert_pct','80%','Pct of revenue to BTC','May 20'],
+];
+const policyDiv = document.getElementById('policy-rules');
+rules.forEach(([key,val,desc,upd]) => {
+  const isEnabled = val === 'true';
+  const isBool = val === 'true' || val === 'false';
+  policyDiv.innerHTML += `<div class="policy-row"><div><div class="policy-key" style="font-weight:500;">${key}</div><div style="font-size:11px;color:var(--color-text-tertiary);">${desc} — updated ${upd}</div></div>${isBool ? `<div class="toggle ${isEnabled?'tog-on':'tog-off'}"><div class="tog-dot"></div></div>` : `<span class="policy-val">${val}</span>`}</div>`;
+});
+
+// AI SUMMARY via Anthropic API
+async function generateAISummary() {
+  const btn = document.getElementById('ai-gen-btn');
+  const summaryEl = document.getElementById('ai-summary');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  summaryEl.classList.remove('ai-loading');
+  summaryEl.textContent = '';
+
+  const prompt = `You are the internal treasury analyst for MN Global Investment Holdings LLC. Based on the following data, provide a concise 4-5 sentence treasury summary:
+
+Holdings: 14.8372 BTC total
+USD value: $1,445,890 at $97,420/BTC
+Average cost basis: $71,204/BTC
+Unrealized gain: +36.8% (+$388,000)
+Realized gain: +$24,105
+30-day accumulation: +1.234 BTC
+Auto-stack rate: 82%
+Policy status: Active (2-of-3 approval quorum)
+Pending approvals: 2 (spend limit exception 0.35 BTC, cold wallet transfer 2.0 BTC)
+Policy violations (30d): 1 critical (unapproved cold wallet move Jun 30), 1 warning (spend limit exceeded Jul 8)
+Wallet allocation: Cold 76.2%, Warm 19.6%, Hot 4.2%
+BTCPay invoices: 38 paid in 30d, 4 pending
+
+Summarize treasury state, accumulation trend, policy compliance, and the two pending approvals. Keep it decision-oriented and concise. Do not invent facts. If data is missing say so.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || 'Summary unavailable.';
+    summaryEl.textContent = text;
+  } catch(e) {
+    summaryEl.textContent = 'Error generating summary. Check API connection.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Regenerate summary ↗';
+}
+</script>
